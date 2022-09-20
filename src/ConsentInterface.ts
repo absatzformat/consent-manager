@@ -1,10 +1,10 @@
-import ConsentManager, { ConsentData, ConsentOptions } from './ConsentManager';
+import { ConsentData, ConsentOptions } from './ConsentManager';
 import { createElement } from './dom';
 import * as styles from './styles.css';
 
-const roots = new WeakMap<ConsentInterface, ShadowRoot>();
-
 class ConsentInterface extends HTMLElement {
+
+	protected root: ShadowRoot;
 
 	protected options: ConsentOptions;
 
@@ -19,13 +19,10 @@ class ConsentInterface extends HTMLElement {
 
 		this.appendChild(document.createComment('Absatzformat GmbH Consent Manager'));
 
-		const root = this.attachShadow({ mode: 'closed' });
-		roots.set(this, root);
-
-		console.log(roots);
+		this.root = this.attachShadow({ mode: 'open' });
 
 		const style = createElement('style', {}, [styles]);
-		root.appendChild(style);
+		this.root.appendChild(style);
 
 		const showSettingsBtn = createElement('button', { class: 'button show-settings' }, ['Einstellungen']);
 		const necessaryOnlyBtn = createElement('button', { class: 'button necessary-only' }, ['Nur notwendige']);
@@ -40,7 +37,7 @@ class ConsentInterface extends HTMLElement {
 		wrapper.querySelector('.content')!.append(this.createNoticeView());
 		wrapper.querySelector('.actions')!.append(showSettingsBtn, necessaryOnlyBtn, acceptAllBtn);
 
-		root.appendChild(wrapper);
+		this.root.appendChild(wrapper);
 	}
 
 	protected createNoticeView(): HTMLDivElement {
@@ -110,10 +107,8 @@ class ConsentInterface extends HTMLElement {
 
 		await Promise.resolve();
 
-		const root = roots.get(this)!;
-
 		// groups
-		root.querySelectorAll<HTMLInputElement>('.groups input[type="checkbox"]').forEach((input) => {
+		this.root.querySelectorAll<HTMLInputElement>('.groups input[type="checkbox"]').forEach((input) => {
 			input.checked = !!consentData.cmg[input.name];
 		});
 
@@ -132,8 +127,7 @@ class ConsentInterface extends HTMLElement {
 
 	protected showSettings() {
 
-		const root = roots.get(this)!;
-		const showSettingsBtn = root.querySelector('button.show-settings');
+		const showSettingsBtn = this.root.querySelector('button.show-settings');
 
 		if (showSettingsBtn) {
 
@@ -144,16 +138,15 @@ class ConsentInterface extends HTMLElement {
 
 			const settings = this.createSettingsView();
 
-			root.querySelector('.content .notice')?.replaceWith(settings);
+			this.root.querySelector('.content .notice')?.replaceWith(settings);
 		}
 	}
 
 	protected selectionOnClick(e: Event) {
 
-		const root = roots.get(this)!;
 		const groups: Record<string, boolean> = {};
 
-		root.querySelectorAll<HTMLInputElement>('.groups input[type="checkbox"]').forEach((input) => {
+		this.root.querySelectorAll<HTMLInputElement>('.groups input[type="checkbox"]').forEach((input) => {
 			groups[input.name] = input.checked;
 		});
 
@@ -188,8 +181,7 @@ class ConsentInterface extends HTMLElement {
 
 		if (this.parentNode) {
 
-			const root = roots.get(this)!;
-			const container = root.querySelector<HTMLElement>('.container')!;
+			const container = this.root.querySelector<HTMLElement>('.container')!;
 			container.classList.add('hide');
 
 			await Promise.all(container.getAnimations().map(a => a.finished));
