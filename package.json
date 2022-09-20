@@ -1,0 +1,30 @@
+{
+  "name": "@absatzformat/consent-manager",
+  "version": "1.0.0",
+  "description": "Standalone GDPR, ePrivacy user consent manager.",
+  "main": "index.js",
+  "scripts": {
+    "start": "serve -n -p 8080",
+    "build": "npm run build:dist && terser -c -m -o dist/acm.min.js dist/acm.js",
+    "build:dist": "browserify -p tsify -t [ browserify-css --autoInject=false --minify=true --stripComments=true ] src/main.ts > dist/acm.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/absatzformat/consent-manager.git"
+  },
+  "author": "Johannes Rabausch",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/absatzformat/consent-manager/issues"
+  },
+  "homepage": "https://github.com/absatzformat/consent-manager#readme",
+  "devDependencies": {
+    "browserify": "^17.0.0",
+    "browserify-css": "^0.15.0",
+    "roddeh-i18n": "^1.2.1",
+    "serve": "^14.0.1",
+    "terser": "^5.14.2",
+    "tsify": "^5.0.4",
+    "typescript": "^4.7.4"
+  }
+}

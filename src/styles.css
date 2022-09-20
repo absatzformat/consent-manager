@@ -1,0 +1,206 @@
+:host {
+	--color-primary: #e72d4b;
+	--color-secondary: #2e3142;
+	--color-muted: #ccc;
+	--color-background: #fff;
+	--border-radius: 2px;
+	--toggle-size: 20px;
+}
+
+.wrapper {
+	position: fixed;
+	z-index: 99999;
+	display: flex;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	padding: 15px;
+	pointer-events: none;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+.container {
+	border-radius: var(--border-radius);
+	width: 800px;
+	max-width: 100%;
+	max-height: 100%;
+	background-color: var(--color-background);
+	box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.25);
+	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	animation: fade-in ease 250ms;
+}
+
+.container.hide {
+	animation: fade-out ease 250ms;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(15px);
+	}
+}
+
+@keyframes fade-out {
+	to {
+		opacity: 0;
+		transform: translateY(15px);
+	}
+}
+
+.content {
+	overflow: auto;
+	padding: 15px;
+	scrollbar-width: thin;
+}
+
+/* .thin-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: lightgray whitesmoke;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+	width: 10px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+	background: whitesmoke;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+	background-color: lightgray;
+	border: 3px solid whitesmoke;
+	border-radius: 10px;
+} */
+
+.groups {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.groups>div {
+	width: 100%;
+	margin-bottom: 5px;
+}
+
+.setting {
+	position: relative;
+	display: inline-flex;
+	user-select: none;
+	align-items: center;
+}
+
+.setting input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	opacity: 0;
+}
+
+.setting .toggle {
+	display: inline-block;
+	width: calc(var(--toggle-size) * 2);
+	height: var(--toggle-size);
+	border-radius: var(--toggle-size);
+	background-color: var(--color-muted);
+	border: 2px solid var(--color-muted);
+	margin-right: 15px;
+	transition: background-color ease 150ms, border-color ease 150ms;
+}
+
+.setting .toggle:after {
+	content: "";
+	display: block;
+	width: var(--toggle-size);
+	height: var(--toggle-size);
+	border-radius: 50%;
+	background-color: var(--color-background);
+	transition: transform ease 150ms;
+}
+
+.setting input:checked~.toggle {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.setting input:focus~.toggle {
+	outline: 2px solid var(--color-secondary);
+}
+
+.setting input:focus:not(:focus-visible)~.toggle {
+	outline: none;
+}
+
+.setting input:focus-visible~.toggle {
+	outline: 2px solid var(--color-secondary);
+}
+
+.setting input:checked~.toggle:after {
+	transform: translateX(100%);
+}
+
+.actions {
+	padding: 15px;
+	border-top: 1px solid var(--color-muted);
+}
+
+.button {
+	font: inherit;
+	font-weight: 600;
+	background: transparent;
+	color: currentColor;
+	border: 2px solid var(--color-primary);
+	border-radius: var(--border-radius);
+	padding: 15px 10px;
+	user-select: none;
+}
+
+.button:hover,
+.button:focus {
+	border-color: var(--color-secondary);
+	outline: none;
+}
+
+.button.accept-all {
+	background-color: var(--color-primary);
+	color: var(--color-background);
+}
+
+.button.accept-all:hover,
+.button.accept-all:focus {
+	background-color: var(--color-secondary);
+}
+
+.actions button {
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+@media(min-width: 600px) {
+	.groups>div {
+		width: 50%;
+	}
+
+	.actions {
+		display: flex;
+		align-items: stretch;
+		justify-content: stretch;
+	}
+
+	.actions button {
+		margin-right: 10px;
+		margin-bottom: 0;
+	}
+
+	.actions button:last-child {
+		margin-right: 0;
+	}
+}
