@@ -30,7 +30,7 @@ const defaultOptions: ConsentOptions = {
 	whitelistUrls: [],
 	consentGroups: {},
 	consentNotice: '[notice]',
-	consentLifetime: 3600 * 24 * 365 // 12 months
+	consentLifetime: 365
 };
 
 class ConsentManager {
@@ -61,7 +61,7 @@ class ConsentManager {
 		if (this.consentData) {
 
 			const currentTime = new Date().getTime();
-			const lifetime = this.options.consentLifetime * 1000;
+			const lifetime = this.options.consentLifetime * 24 * 3600 * 1000;
 
 			if (currentTime - this.consentData.utc <= lifetime) {
 
