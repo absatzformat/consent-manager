@@ -1,5 +1,6 @@
 import { ConsentData, ConsentOptions } from './ConsentManager';
 import { createElement } from './dom';
+import I18n from './I18n';
 import * as styles from './styles.css';
 
 class ConsentInterface extends HTMLElement {
@@ -7,6 +8,8 @@ class ConsentInterface extends HTMLElement {
 	protected root: ShadowRoot;
 
 	protected options: ConsentOptions;
+
+	protected i18n: I18n;
 
 	protected consentData: ConsentData | null = null;
 
@@ -16,17 +19,19 @@ class ConsentInterface extends HTMLElement {
 
 		this.options = options;
 		this.consentData = consentData;
+		this.i18n = new I18n();
+		this.i18n.add(this.options.translation);
 
 		this.appendChild(document.createComment('Absatzformat GmbH Consent Manager'));
 
-		this.root = this.attachShadow({ mode: 'open' });
+		this.root = this.attachShadow({ mode: 'closed' });
 
 		const style = createElement('style', {}, [styles]);
 		this.root.appendChild(style);
 
-		const showSettingsBtn = createElement('button', { class: 'button show-settings' }, ['Einstellungen']);
-		const necessaryOnlyBtn = createElement('button', { class: 'button necessary-only' }, ['Nur notwendige']);
-		const acceptAllBtn = createElement('button', { class: 'button accept-all' }, ['Alle akzeptieren']);
+		const showSettingsBtn = createElement('button', { class: 'button show-settings' }, [this.i18n.t('button.settings')]);
+		const necessaryOnlyBtn = createElement('button', { class: 'button necessary-only' }, [this.i18n.t('button.necessary')]);
+		const acceptAllBtn = createElement('button', { class: 'button accept-all' }, [this.i18n.t('button.accept')]);
 
 		showSettingsBtn.addEventListener('click', this.settingsOnClick.bind(this));
 		necessaryOnlyBtn.addEventListener('click', this.necessaryOnClick.bind(this));
@@ -41,8 +46,11 @@ class ConsentInterface extends HTMLElement {
 	}
 
 	protected createNoticeView(): HTMLDivElement {
+
 		const wrapper = createElement<HTMLDivElement>('div', { class: 'notice' });
-		wrapper.innerHTML = this.options.consentNotice;
+		
+		// allow html
+		wrapper.innerHTML = this.i18n.t('notice.consent');
 
 		return wrapper;
 	}
@@ -50,16 +58,18 @@ class ConsentInterface extends HTMLElement {
 	protected createSettingsView(): HTMLDivElement {
 
 		const desc = createElement<HTMLDivElement>('div', { class: 'desc' });
-		desc.innerHTML = 'blaaa';
+		
+		// allow html
+		desc.innerHTML = this.i18n.t('notice.services');
 
 		const groups = createElement<HTMLDivElement>('div', { class: 'groups' });
 
 		for (const group in this.options.consentGroups) {
 
-			const desc = this.options.consentGroups[group];
+			const name = this.i18n.t(`group.${group}.name`);
 			const checked = !!this.consentData?.cmg[group];
 
-			groups.appendChild(this.createSetting(group, desc, checked));
+			groups.appendChild(this.createSetting(group, name, checked));
 		}
 
 		const wrapper = createElement<HTMLDivElement>('div', { class: 'settings' }, [desc, groups]);

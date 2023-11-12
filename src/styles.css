@@ -2,12 +2,15 @@
 	--color-primary: #e72d4b;
 	--color-secondary: #2e3142;
 	--color-muted: #ccc;
+	--color-active: #e72d4b;
 	--color-background: #fff;
 	--border-radius: 2px;
 	--toggle-size: 20px;
+	--box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.25);
 }
 
 .wrapper {
+	/* all: initial; */
 	position: fixed;
 	z-index: 99999;
 	display: flex;
@@ -27,7 +30,7 @@
 	max-width: 100%;
 	max-height: 100%;
 	background-color: var(--color-background);
-	box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.25);
+	box-shadow: var(--box-shadow);
 	pointer-events: all;
 	display: flex;
 	flex-direction: column;
@@ -106,6 +109,7 @@
 }
 
 .setting .toggle {
+	position: relative;
 	display: inline-block;
 	width: calc(var(--toggle-size) * 2);
 	height: var(--toggle-size);
@@ -126,9 +130,25 @@
 	transition: transform ease 150ms;
 }
 
+/* .setting .toggle:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 3px;
+	height: 6px;
+	border-color: black;
+	border-width: 2px;
+	border-bottom-style: solid;
+	border-right-style: solid;
+	transform: rotate(45deg);
+	z-index: 2;
+} */
+
 .setting input:checked~.toggle {
-	background-color: var(--color-primary);
-	border-color: var(--color-primary);
+	background-color: var(--color-active);
+	border-color: var(--color-active);
 }
 
 .setting input:focus~.toggle {
@@ -149,7 +169,7 @@
 
 .actions {
 	padding: 15px;
-	border-top: 1px solid var(--color-muted);
+	/* border-top: 1px solid var(--color-muted); */
 }
 
 .button {

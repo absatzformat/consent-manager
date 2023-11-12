@@ -11,45 +11,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dom_1 = require("./dom");
+const I18n_1 = require("./I18n");
 const styles = require("./styles.css");
-const roots = new WeakMap();
 class ConsentInterface extends HTMLElement {
     constructor(options, consentData) {
         super();
         this.consentData = null;
         this.options = options;
         this.consentData = consentData;
+        this.i18n = new I18n_1.default();
+        this.i18n.add(this.options.translation);
         this.appendChild(document.createComment('Absatzformat GmbH Consent Manager'));
-        const root = this.attachShadow({ mode: 'closed' });
-        roots.set(this, root);
-        console.log(roots);
+        this.root = this.attachShadow({ mode: 'closed' });
         const style = (0, dom_1.createElement)('style', {}, [styles]);
-        root.appendChild(style);
-        const showSettingsBtn = (0, dom_1.createElement)('button', { class: 'button show-settings' }, ['Einstellungen']);
-        const necessaryOnlyBtn = (0, dom_1.createElement)('button', { class: 'button necessary-only' }, ['Nur notwendige']);
-        const acceptAllBtn = (0, dom_1.createElement)('button', { class: 'button accept-all' }, ['Alle akzeptieren']);
+        this.root.appendChild(style);
+        const showSettingsBtn = (0, dom_1.createElement)('button', { class: 'button show-settings' }, [this.i18n.t('button.settings')]);
+        const necessaryOnlyBtn = (0, dom_1.createElement)('button', { class: 'button necessary-only' }, [this.i18n.t('button.necessary')]);
+        const acceptAllBtn = (0, dom_1.createElement)('button', { class: 'button accept-all' }, [this.i18n.t('button.accept')]);
         showSettingsBtn.addEventListener('click', this.settingsOnClick.bind(this));
         necessaryOnlyBtn.addEventListener('click', this.necessaryOnClick.bind(this));
         acceptAllBtn.addEventListener('click', this.acceptOnClick.bind(this));
         const wrapper = this.createWrapper();
         wrapper.querySelector('.content').append(this.createNoticeView());
         wrapper.querySelector('.actions').append(showSettingsBtn, necessaryOnlyBtn, acceptAllBtn);
-        root.appendChild(wrapper);
+        this.root.appendChild(wrapper);
     }
     createNoticeView() {
         const wrapper = (0, dom_1.createElement)('div', { class: 'notice' });
-        wrapper.innerHTML = this.options.consentNotice;
+        // allow html
+        wrapper.innerHTML = this.i18n.t('notice.consent');
         return wrapper;
     }
     createSettingsView() {
         var _a;
         const desc = (0, dom_1.createElement)('div', { class: 'desc' });
-        desc.innerHTML = 'blaaa';
+        // allow html
+        desc.innerHTML = this.i18n.t('notice.services');
         const groups = (0, dom_1.createElement)('div', { class: 'groups' });
         for (const group in this.options.consentGroups) {
-            const desc = this.options.consentGroups[group];
+            const name = this.i18n.t(`group.${group}.name`);
             const checked = !!((_a = this.consentData) === null || _a === void 0 ? void 0 : _a.cmg[group]);
-            groups.appendChild(this.createSetting(group, desc, checked));
+            groups.appendChild(this.createSetting(group, name, checked));
         }
         const wrapper = (0, dom_1.createElement)('div', { class: 'settings' }, [desc, groups]);
         return wrapper;
@@ -82,9 +84,8 @@ class ConsentInterface extends HTMLElement {
         return __awaiter(this, void 0, void 0, function* () {
             this.consentData = consentData;
             yield Promise.resolve();
-            const root = roots.get(this);
             // groups
-            root.querySelectorAll('.groups input[type="checkbox"]').forEach((input) => {
+            this.root.querySelectorAll('.groups input[type="checkbox"]').forEach((input) => {
                 input.checked = !!consentData.cmg[input.name];
             });
             // consent data
@@ -99,20 +100,18 @@ class ConsentInterface extends HTMLElement {
     }
     showSettings() {
         var _a;
-        const root = roots.get(this);
-        const showSettingsBtn = root.querySelector('button.show-settings');
+        const showSettingsBtn = this.root.querySelector('button.show-settings');
         if (showSettingsBtn) {
             const saveSelectionBtn = (0, dom_1.createElement)('button', { class: 'button save-selection secondary' }, ['Auswahl speichern']);
             saveSelectionBtn.addEventListener('click', this.selectionOnClick.bind(this));
             showSettingsBtn.replaceWith(saveSelectionBtn);
             const settings = this.createSettingsView();
-            (_a = root.querySelector('.content .notice')) === null || _a === void 0 ? void 0 : _a.replaceWith(settings);
+            (_a = this.root.querySelector('.content .notice')) === null || _a === void 0 ? void 0 : _a.replaceWith(settings);
         }
     }
     selectionOnClick(e) {
-        const root = roots.get(this);
         const groups = {};
-        root.querySelectorAll('.groups input[type="checkbox"]').forEach((input) => {
+        this.root.querySelectorAll('.groups input[type="checkbox"]').forEach((input) => {
             groups[input.name] = input.checked;
         });
         const event = new CustomEvent('custom-select', {
@@ -140,8 +139,7 @@ class ConsentInterface extends HTMLElement {
     detach() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.parentNode) {
-                const root = roots.get(this);
-                const container = root.querySelector('.container');
+                const container = this.root.querySelector('.container');
                 container.classList.add('hide');
                 yield Promise.all(container.getAnimations().map(a => a.finished));
                 this.parentNode.removeChild(this);
@@ -155,7 +153,7 @@ if (!customElements.get('consent-ui')) {
 }
 exports.default = ConsentInterface;
 
-},{"./dom":4,"./styles.css":6}],2:[function(require,module,exports){
+},{"./I18n":4,"./dom":5,"./styles.css":7}],2:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -180,8 +178,8 @@ const defaultOptions = {
     consentChangeReload: false,
     whitelistUrls: [],
     consentGroups: {},
-    consentNotice: '[notice]',
-    consentLifetime: 3600 * 24 * 365 // 12 months
+    consentLifetime: 365,
+    translation: {}
 };
 class ConsentManager {
     constructor(options) {
@@ -197,7 +195,7 @@ class ConsentManager {
         (_a = this.options.onInit) === null || _a === void 0 ? void 0 : _a.call(this.options.onInit, this);
         if (this.consentData) {
             const currentTime = new Date().getTime();
-            const lifetime = this.options.consentLifetime * 1000;
+            const lifetime = this.options.consentLifetime * 24 * 3600 * 1000;
             if (currentTime - this.consentData.utc <= lifetime) {
                 this.processScripts();
                 return;
@@ -340,7 +338,7 @@ class ConsentManager {
 }
 exports.default = ConsentManager;
 
-},{"./ConsentInterface":1,"./ConsentStorage":3,"./dom":4,"./uuid":7}],3:[function(require,module,exports){
+},{"./ConsentInterface":1,"./ConsentStorage":3,"./dom":5,"./uuid":8}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ConsentStorage {
@@ -387,6 +385,108 @@ exports.default = ConsentStorage;
 },{}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+const regexEscape = (token) => {
+    return token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+const buildRegex = (tokens) => {
+    return new RegExp(tokens.map(regexEscape).join('(.*?)'), 'g');
+};
+const keyExists = (key, obj) => {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+};
+const replace = (str, values, replaceRegex) => {
+    return str.replace(replaceRegex, (expr, key) => {
+        if (keyExists(key, values)) {
+            return values[key].toString();
+        }
+        return expr;
+    });
+};
+const defaultOptions = {
+    replaceTokens: ['%{', '}'],
+    groupDelimiter: '.',
+    numberSelector: 'n',
+    pluralFunction: (num) => num !== 1 ? 1 : 0 // de, en, es, it, ...
+};
+class I18n {
+    constructor(options) {
+        this.translation = {};
+        const { pluralFunction, replaceTokens, groupDelimiter, numberSelector } = Object.assign(Object.assign({}, defaultOptions), options);
+        this.pluralFunction = pluralFunction;
+        this.replaceRegex = buildRegex(replaceTokens);
+        this.groupDelimiter = groupDelimiter;
+        this.numberSelector = numberSelector;
+    }
+    // https://www.gnu.org/software/gettext/manual/html_node/Plural-forms.html
+    static pf(locale) {
+        const rules = new Intl.PluralRules(locale, { type: 'cardinal' });
+        const options = rules.resolvedOptions();
+        const ordered = ['zero', 'one', 'two', 'few', 'many', 'other'];
+        const sorted = options.pluralCategories
+            .map((c) => ordered.indexOf(c))
+            .sort()
+            .map((i) => ordered[i]);
+        return (n) => {
+            const select = rules.select(n);
+            return sorted.indexOf(select);
+        };
+    }
+    ;
+    add(translation, group) {
+        const delim = this.groupDelimiter;
+        const prefix = typeof group === 'string' && group !== '' ? group + delim : '';
+        for (const key in translation) {
+            const entry = translation[key];
+            const path = prefix + key;
+            if (Array.isArray(entry) || typeof entry !== 'object') {
+                this.translation[path] = entry;
+            }
+            else {
+                this.add(entry, path);
+            }
+        }
+        return this;
+    }
+    remove(key) {
+        delete this.translation[key];
+        return this;
+    }
+    prune() {
+        this.translation = {};
+        return this;
+    }
+    has(key) {
+        return keyExists(key, this.translation);
+    }
+    t(key, context) {
+        const values = typeof context === 'number' ? { [this.numberSelector]: context } : Object.assign({}, context);
+        if (this.has(key)) {
+            const translation = this.translation[key];
+            if (typeof translation === 'string') {
+                return replace(translation, values, this.replaceRegex);
+            }
+            if (typeof values[this.numberSelector] !== 'number') {
+                throw new TypeError(`No number for pluralization given`);
+            }
+            const num = values[this.numberSelector];
+            const index = this.pluralFunction.call(this.pluralFunction, Math.abs(num));
+            if (typeof translation[index] === 'string') {
+                return replace(translation[index], values, this.replaceRegex);
+            }
+            console.warn(`No matching pluralization for key < ${key} > index < ${index} > found`);
+        }
+        else {
+            console.warn(`No translation for key < ${key} > found`);
+        }
+        return replace(key, values, this.replaceRegex);
+    }
+}
+exports.default = I18n;
+
+},{}],5:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.elementToString = exports.createElement = void 0;
 const createElement = (tag, attributes, children) => {
     const element = document.createElement(tag);
@@ -408,15 +508,15 @@ const elementToString = (element) => {
 };
 exports.elementToString = elementToString;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const ConsentManager_1 = require("./ConsentManager");
 window.consentManager = new ConsentManager_1.default(window.cmOptions);
 
-},{"./ConsentManager":2}],6:[function(require,module,exports){
-module.exports = ":host{--color-primary:#e72d4b;--color-secondary:#2e3142;--color-muted:#ccc;--color-background:#fff;--border-radius:2px;--toggle-size:20px}.wrapper{position:fixed;z-index:99999;display:flex;top:0;left:0;bottom:0;right:0;padding:15px;pointer-events:none;align-items:flex-end;justify-content:center}.container{border-radius:var(--border-radius);width:800px;max-width:100%;max-height:100%;background-color:var(--color-background);box-shadow:0 0 15px 0 rgba(0,0,0,.25);pointer-events:all;display:flex;flex-direction:column;overflow:hidden;animation:fade-in ease 250ms}.container.hide{animation:fade-out ease 250ms}@keyframes fade-in{from{opacity:0;transform:translateY(15px)}}@keyframes fade-out{to{opacity:0;transform:translateY(15px)}}.content{overflow:auto;padding:15px;scrollbar-width:thin}.groups{display:flex;align-items:center;flex-wrap:wrap}.groups>div{width:100%;margin-bottom:5px}.setting{position:relative;display:inline-flex;user-select:none;align-items:center}.setting input{position:absolute;top:0;left:0;width:0;height:0;opacity:0}.setting .toggle{display:inline-block;width:calc(var(--toggle-size) * 2);height:var(--toggle-size);border-radius:var(--toggle-size);background-color:var(--color-muted);border:2px solid var(--color-muted);margin-right:15px;transition:background-color ease 150ms,border-color ease 150ms}.setting .toggle:after{content:\"\";display:block;width:var(--toggle-size);height:var(--toggle-size);border-radius:50%;background-color:var(--color-background);transition:transform ease 150ms}.setting input:checked~.toggle{background-color:var(--color-primary);border-color:var(--color-primary)}.setting input:focus~.toggle{outline:2px solid var(--color-secondary)}.setting input:focus:not(:focus-visible)~.toggle{outline:0}.setting input:focus-visible~.toggle{outline:2px solid var(--color-secondary)}.setting input:checked~.toggle:after{transform:translateX(100%)}.actions{padding:15px;border-top:1px solid var(--color-muted)}.button{font:inherit;font-weight:600;background:0 0;color:currentColor;border:2px solid var(--color-primary);border-radius:var(--border-radius);padding:15px 10px;user-select:none}.button:focus,.button:hover{border-color:var(--color-secondary);outline:0}.button.accept-all{background-color:var(--color-primary);color:var(--color-background)}.button.accept-all:focus,.button.accept-all:hover{background-color:var(--color-secondary)}.actions button{width:100%;margin-bottom:10px}@media (min-width:600px){.groups>div{width:50%}.actions{display:flex;align-items:stretch;justify-content:stretch}.actions button{margin-right:10px;margin-bottom:0}.actions button:last-child{margin-right:0}}";
-},{}],7:[function(require,module,exports){
+},{"./ConsentManager":2}],7:[function(require,module,exports){
+module.exports = ":host{--color-primary:#e72d4b;--color-secondary:#2e3142;--color-muted:#ccc;--color-active:#e72d4b;--color-background:#fff;--border-radius:2px;--toggle-size:20px;--box-shadow:0 0 15px 0 rgba(0, 0, 0, 0.25)}.wrapper{position:fixed;z-index:99999;display:flex;top:0;left:0;bottom:0;right:0;padding:15px;pointer-events:none;align-items:flex-end;justify-content:center}.container{border-radius:var(--border-radius);width:800px;max-width:100%;max-height:100%;background-color:var(--color-background);box-shadow:var(--box-shadow);pointer-events:all;display:flex;flex-direction:column;overflow:hidden;animation:fade-in ease 250ms}.container.hide{animation:fade-out ease 250ms}@keyframes fade-in{from{opacity:0;transform:translateY(15px)}}@keyframes fade-out{to{opacity:0;transform:translateY(15px)}}.content{overflow:auto;padding:15px;scrollbar-width:thin}.groups{display:flex;align-items:center;flex-wrap:wrap}.groups>div{width:100%;margin-bottom:5px}.setting{position:relative;display:inline-flex;user-select:none;align-items:center}.setting input{position:absolute;top:0;left:0;width:0;height:0;opacity:0}.setting .toggle{position:relative;display:inline-block;width:calc(var(--toggle-size) * 2);height:var(--toggle-size);border-radius:var(--toggle-size);background-color:var(--color-muted);border:2px solid var(--color-muted);margin-right:15px;transition:background-color ease 150ms,border-color ease 150ms}.setting .toggle:after{content:\"\";display:block;width:var(--toggle-size);height:var(--toggle-size);border-radius:50%;background-color:var(--color-background);transition:transform ease 150ms}.setting input:checked~.toggle{background-color:var(--color-active);border-color:var(--color-active)}.setting input:focus~.toggle{outline:2px solid var(--color-secondary)}.setting input:focus:not(:focus-visible)~.toggle{outline:0}.setting input:focus-visible~.toggle{outline:2px solid var(--color-secondary)}.setting input:checked~.toggle:after{transform:translateX(100%)}.actions{padding:15px}.button{font:inherit;font-weight:600;background:0 0;color:currentColor;border:2px solid var(--color-primary);border-radius:var(--border-radius);padding:15px 10px;user-select:none}.button:focus,.button:hover{border-color:var(--color-secondary);outline:0}.button.accept-all{background-color:var(--color-primary);color:var(--color-background)}.button.accept-all:focus,.button.accept-all:hover{background-color:var(--color-secondary)}.actions button{width:100%;margin-bottom:10px}@media (min-width:600px){.groups>div{width:50%}.actions{display:flex;align-items:stretch;justify-content:stretch}.actions button{margin-right:10px;margin-bottom:0}.actions button:last-child{margin-right:0}}";
+},{}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toBase62 = void 0;
@@ -441,4 +541,4 @@ const generate = () => {
 };
 exports.default = generate;
 
-},{}]},{},[5]);
+},{}]},{},[6]);

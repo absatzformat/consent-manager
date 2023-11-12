@@ -9,12 +9,22 @@ export interface ConsentOptions {
 	consentGroupSelector: string,
 	consentChangeReload: boolean;
 	whitelistUrls: string[];
-	consentGroups: Record<string, string>,
-	consentNotice: string;
-	consentLifetime: number;
+	consentLifetime: number; // days
+	consentGroups: {
+		[name: string]: ConsentGroup
+	},
+	translation: Translation;
 	onInit?: (consentManager: ConsentManager) => void;
 	onConsent?: (consentData: ConsentData) => void;
 };
+
+export interface ConsentGroup{
+	
+}
+
+export interface Translation {
+	[key: string]: string;
+}
 
 export interface ConsentData {
 	uid: string;
@@ -29,8 +39,8 @@ const defaultOptions: ConsentOptions = {
 	consentChangeReload: false,
 	whitelistUrls: [],
 	consentGroups: {},
-	consentNotice: '[notice]',
-	consentLifetime: 365
+	consentLifetime: 365,
+	translation: {}
 };
 
 class ConsentManager {
